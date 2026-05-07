@@ -64,6 +64,12 @@ jobs:
             --query taskDefinition \
             > task-definition.json
 
+      - name: Patch FRONTEND_ORIGIN in task definition
+        run: |
+          jq '(.containerDefinitions[0].environment[] | select(.name == "FRONTEND_ORIGIN")).value = "https://app.careerops.enovisoft.com"' \
+            task-definition.json > task-definition.patched.json \
+            && mv task-definition.patched.json task-definition.json
+
       - name: Render new task definition with updated image
         id: render-task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1

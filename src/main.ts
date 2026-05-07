@@ -10,8 +10,11 @@ async function bootstrap() {
 
   const config = app.get(ConfigService);
   const port = config.get<number>('PORT') ?? 3001;
-  const frontendOrigin =
+  const rawOrigin =
     config.get<string>('FRONTEND_ORIGIN') ?? 'http://localhost:5173';
+  const frontendOrigin = rawOrigin.includes(',')
+    ? rawOrigin.split(',').map((o) => o.trim())
+    : rawOrigin;
 
   app.enableCors({
     origin: frontendOrigin,
@@ -59,7 +62,9 @@ async function bootstrap() {
   const logger = new Logger('Bootstrap');
   logger.log(`Server       : http://localhost:${port}`);
   logger.log(`Swagger docs : http://localhost:${port}/api-docs`);
-  logger.log(`CORS origin  : ${frontendOrigin}`);
+  logger.log(
+    `CORS origin  : ${Array.isArray(frontendOrigin) ? frontendOrigin.join(', ') : frontendOrigin}`,
+  );
   logger.log(
     `Gemini model : ${config.get<string>('GEMINI_MODEL') ?? '(not set)'}`,
   );
