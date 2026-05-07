@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { chromium } from 'playwright';
 
-// ── Classification logic (port of liveness-core.mjs) ────────────────
+// ── Classification logic (port of liveness-core.mjs) ────
 
 const HARD_EXPIRED = [
   /job (is )?no longer available/i,
@@ -60,7 +60,7 @@ function classifyLiveness(opts: {
   return { result: 'uncertain', reason: 'content present but no visible apply control found' };
 }
 
-// ── Service ──────────────────────────────────────────────────────────
+// ── Service──────
 
 export interface LivenessCheckResult {
   url: string;

@@ -8,7 +8,7 @@ const APPS_FILE = existsSync(join(ROOT, 'data/applications.md'))
   : join(ROOT, 'applications.md');
 const REPORTS_DIR = join(ROOT, 'reports');
 
-// ── Types ────────────────────────────────────────────────────────────
+// ── Types────────
 
 export interface ScoreStats {
   avg: number;
@@ -93,7 +93,7 @@ export interface PatternsError {
   threshold?: number;
 }
 
-// ── Status normalization ─────────────────────────────────────────────
+// ── Status normalization
 
 const ALIASES: Record<string, string> = {
   evaluada: 'evaluated', condicional: 'evaluated', hold: 'evaluated',
@@ -123,7 +123,7 @@ function classifyOutcome(status: string): 'positive' | 'negative' | 'self_filter
   return 'pending';
 }
 
-// ── Report parsing ───────────────────────────────────────────────────
+// ── Report parsing──────
 
 interface ReportData {
   archetype: string | null;
@@ -190,7 +190,7 @@ function parseReport(reportPath: string): ReportData | null {
   return report;
 }
 
-// ── Classification helpers ───────────────────────────────────────────
+// ── Classification helpers────────
 
 function classifyRemote(raw: string | null): string {
   if (!raw) return 'unknown';
@@ -462,7 +462,7 @@ export class PatternsService {
     };
   }
 
-  // ── Private ───────────────────────────────────────────────────────
+  // ── Private───
 
   private parseTracker(): Array<{
     num: number; date: string; company: string; role: string;

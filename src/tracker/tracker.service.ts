@@ -23,7 +23,7 @@ const ALIASES: Record<string, string> = {
   'no aplicar': 'skip', no_aplicar: 'skip', monitor: 'skip', 'geo blocker': 'skip',
 };
 
-// ── Shared helpers ───────────────────────────────────────────────────
+// ── Shared helpers──────
 
 function parseAppsFile() {
   if (!existsSync(APPS_FILE)) return { header: [], entries: [], lines: [] as string[] };
@@ -51,7 +51,7 @@ function normalizeStatusStr(raw: string): string {
   return ALIASES[s] ?? s;
 }
 
-// ── Types ─────────────────────────────────────────────────────────────
+// ── Types─────────
 
 export interface VerifyResult {
   entriesChecked: number;
@@ -84,7 +84,7 @@ export interface MergeResult {
 export class TrackerService {
   private readonly logger = new Logger(TrackerService.name);
 
-  // ── Verify ─────────────────────────────────────────────────────────
+  // ── Verify─────
 
   verify(): VerifyResult {
     if (!existsSync(APPS_FILE)) {
@@ -138,7 +138,7 @@ export class TrackerService {
     return { entriesChecked: entries.length, errors, warnings, passed: errors.length === 0 };
   }
 
-  // ── Normalize ──────────────────────────────────────────────────────
+  // ── Normalize──
 
   normalize(dryRun = false): NormalizeResult {
     if (!existsSync(APPS_FILE)) return { changes: 0, unknowns: [], written: false };
@@ -180,7 +180,7 @@ export class TrackerService {
     return { changes, unknowns, written };
   }
 
-  // ── Dedup ──────────────────────────────────────────────────────────
+  // ── Dedup──────
 
   dedup(dryRun = false): DedupResult {
     if (!existsSync(APPS_FILE)) return { removed: 0, promoted: [], written: false };
@@ -271,7 +271,7 @@ export class TrackerService {
     return { removed, promoted, written };
   }
 
-  // ── Merge TSVs ─────────────────────────────────────────────────────
+  // ── Merge TSVs─
 
   merge(dryRun = false): MergeResult {
     if (!existsSync(ADDITIONS_DIR)) {
@@ -329,7 +329,7 @@ export class TrackerService {
     return { added, updated, skipped, tsvsProcessed: tsvFiles.length, written };
   }
 
-  // ── Private helpers ────────────────────────────────────────────────
+  // ── Private helpers───
 
   private normalizeStatusFull(raw: string): { status: string | null; moveToNotes?: string; unknown?: boolean } {
     let s = raw.replace(/\*\*/g, '').trim();

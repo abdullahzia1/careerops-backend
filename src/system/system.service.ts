@@ -6,7 +6,7 @@ import { chromium } from 'playwright';
 
 const ROOT = resolve(__dirname, '../../');
 
-// ── Types ────────────────────────────────────────────────────────────
+// ── Types────────
 
 export interface DoctorCheck {
   pass: boolean;
@@ -40,13 +40,13 @@ export interface UpdateApplyResult {
   to?: string;
 }
 
-// ── Service ──────────────────────────────────────────────────────────
+// ── Service──────
 
 @Injectable()
 export class SystemService {
   private readonly logger = new Logger(SystemService.name);
 
-  // ── Doctor ─────────────────────────────────────────────────────────
+  // ── Doctor─────
 
   async doctor(): Promise<DoctorResult> {
     const checks: DoctorCheck[] = [
@@ -66,7 +66,7 @@ export class SystemService {
     return { checks, failures, passed: failures === 0 };
   }
 
-  // ── CV Sync Check ──────────────────────────────────────────────────
+  // ── CV Sync Check─────
 
   cvSync(): CvSyncResult {
     const errors: string[] = [];
@@ -111,7 +111,7 @@ export class SystemService {
     return { errors, warnings, passed: errors.length === 0 };
   }
 
-  // ── Update Check ───────────────────────────────────────────────────
+  // ── Update Check──────
 
   async updateCheck(): Promise<UpdateCheckResult> {
     const dismissedPath = join(ROOT, '.update-dismissed');
@@ -196,7 +196,7 @@ export class SystemService {
     }
   }
 
-  // ── Private helpers ────────────────────────────────────────────────
+  // ── Private helpers───
 
   private checkNodeVersion(): DoctorCheck {
     const major = parseInt(process.versions.node.split('.')[0]);

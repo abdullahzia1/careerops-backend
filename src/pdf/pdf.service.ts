@@ -75,7 +75,7 @@ export class PdfService {
     return outputPath;
   }
 
-  // ── Private ──────────────────────────────────────────────────────────
+  // ── Private──────
 
   private getActiveCv(): string {
     const versions = this.storeService.listCvVersions();

@@ -30,7 +30,7 @@ export class StoreService {
     this.activeCvVersionId = id;
   }
 
-  // ── CV ─────────────────────────────────────────────────────────────────────
+  // ── CV─────
 
   listCvVersions(): CvVersion[] {
     return [...this.cvVersions.values()].sort((a, b) =>
@@ -72,7 +72,7 @@ export class StoreService {
     return { ok: true, version };
   }
 
-  // ── Profile ────────────────────────────────────────────────────────────────
+  // ── Profile
 
   listProfileSnapshots(): ProfileSnapshot[] {
     return [...this.profileSnapshots.values()].sort((a, b) =>
@@ -109,7 +109,7 @@ export class StoreService {
     return { ok: true, snapshot };
   }
 
-  // ── Jobs ───────────────────────────────────────────────────────────────────
+  // ── Jobs───
 
   enqueueEvaluation(input: {
     jdText?: string;
@@ -153,7 +153,7 @@ export class StoreService {
     return this.jobs.get(id);
   }
 
-  // ── Worker helpers ─────────────────────────────────────────────────────────
+  // ── Worker helpers─────
 
   claimNextQueuedJob(): EvaluationJob | undefined {
     return [...this.jobs.values()]

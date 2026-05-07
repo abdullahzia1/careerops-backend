@@ -1,4 +1,4 @@
-# ── Stage 1: Build ───────────────────────────────────────────────────────────
+# Stage 1: Build 
 FROM node:20-slim AS builder
 
 WORKDIR /app
@@ -9,7 +9,7 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-# ── Stage 2: Runtime ─────────────────────────────────────────────────────────
+# Stage 2: Runtime
 FROM node:20-slim AS runtime
 
 # System dependencies required by Playwright's Chromium

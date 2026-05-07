@@ -141,7 +141,7 @@ export class ScanService {
     };
   }
 
-  // ── Private helpers ─────────────────────────────────────────────────
+  // ── Private helpers────
 
   private detectApi(company: Record<string, unknown>): ApiTarget | null {
     if (typeof company.api === 'string' && company.api.includes('greenhouse')) {
