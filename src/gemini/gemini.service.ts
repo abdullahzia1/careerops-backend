@@ -29,7 +29,7 @@ export class GeminiService {
   }
 
   private get modelName(): string {
-    return this.config.get<string>('GEMINI_MODEL') ?? 'gemini-2.0-flash';
+    return this.config.get<string>('GEMINI_MODEL') ?? 'gemini-2.5-pro';
   }
 
   private readFileSafe(relPath: string, label: string): string {
