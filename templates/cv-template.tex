@@ -1,123 +1,116 @@
-%-------------------------
-% Career-Ops LaTeX CV Template
-% Based on: Gabriel Sison / sb2nov resume template
-% License: MIT
-%------------------------
+\documentclass[a4paper,10pt]{article}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%  Random Stuff %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\documentclass[letterpaper,11pt]{article}
-\usepackage{latexsym}
-\usepackage[empty]{fullpage}
-\usepackage{titlesec}
-\usepackage{marvosym}
-\usepackage[usenames,dvipsnames]{color}
-\usepackage{verbatim}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[top=0.5in, bottom=0.8in, left=0.8in, right=0.8in]{geometry}
 \usepackage{enumitem}
 \usepackage[hidelinks]{hyperref}
-\usepackage{fancyhdr}
-\usepackage[english]{babel}
-\usepackage{tabularx}
-\usepackage{fontawesome}
-\usepackage{multicol}
-\setlength{\multicolsep}{-3.0pt}
-\setlength{\columnsep}{-1pt}
-\input{glyphtounicode}
-\pagestyle{fancy}
-\fancyhf{} % clear all header and footer fields
-\fancyfoot{}
-\renewcommand{\headrulewidth}{0pt}
-\renewcommand{\footrulewidth}{0pt}
-% Adjust margins
-\addtolength{\oddsidemargin}{-0.6in}
-\addtolength{\evensidemargin}{-0.5in}
-\addtolength{\textwidth}{1.19in}
-\addtolength{\topmargin}{-.7in}
-\addtolength{\textheight}{1.4in}
-\urlstyle{same}
-\raggedbottom
-\raggedright
-\setlength{\tabcolsep}{0in}
-% Sections formatting
-\titleformat{\section}{
-  \vspace{-7pt}\scshape\raggedright\large\bfseries
-}{}{0em}{}[\color{black}\titlerule \vspace{0pt}]
-% Ensure that generate pdf is machine readable/ATS parsable
-\pdfgentounicode=1
+\usepackage{titlesec}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%  Commands  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newcommand{\resumeItem}[1]{
-  \item\small{
-    {#1 \vspace{-3pt}}
-  }
-}
-\newcommand{\resumeSubheading}[4]{
-  \vspace{-3pt}\item
-    \begin{tabular*}{1.0\textwidth}[t]{l@{\extracolsep{\fill}}r}
-      \textbf{#1} & \textbf{\small #2} \\
-      \textit{\small#3} & \textit{\small #4} \\
-    \end{tabular*}\vspace{-7pt}
-}
-\newcommand{\resumeSubheadingContinue}[2]{
-  \vspace{-3pt}
-    \begin{tabular*}{1.0\textwidth}[t]{l@{\extracolsep{\fill}}r}
-      \textit{\small#1} & \textit{\small #2} \\
-    \end{tabular*}\vspace{-7pt}
-}
-\newcommand{\resumeProjectHeading}[2]{
-  \vspace{-3pt}\item
-    \begin{tabular*}{1.0\textwidth}[t]{l@{\extracolsep{\fill}}r}
-      \textbf{#1} & \textbf{\small #2} \\
-    \end{tabular*}\vspace{-7pt}
-}
-\newcommand{\resumeSubItem}[1]{\resumeItem{#1}\vspace{0pt}}
-\renewcommand\labelitemi{$\vcenter{\hbox{\tiny$\bullet$}}$}
-\renewcommand\labelitemii{$\vcenter{\hbox{\tiny$\bullet$}}$}
-\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.0in, label={}]}
-\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
-\newcommand{\resumeItemListStart}{\begin{itemize}}
-\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{0pt}}
+\titleformat{\section}{\large\bfseries}{}{0em}{}[\titlerule]
+\titlespacing{\section}{0pt}{4pt}{2pt}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%  Heading  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\setlist[itemize]{
+    itemsep=3pt,
+    topsep=0pt,   % removed gap before bullets
+    parsep=0pt,
+    partopsep=0pt
+}
+
 \begin{document}
-    \begin{center}
-        % NAME
-        {\Huge\scshape {{NAME}}}
-        % SUBHEADING
-        \\ {{CONTACT_LINE}}\\
-        \small
-        % EMAIL
-        \href{mailto:{{EMAIL_URL}}}{\raisebox{-0.2\height}\faEnvelope\  \underline{{{EMAIL_DISPLAY}}}} ~
-        % LINKEDIN
-        \href{{{LINKEDIN_URL}}}{\raisebox{-0.2\height}\faLinkedin\ \underline{{{LINKEDIN_DISPLAY}}}}  ~
-        % GITHUB
-        \href{{{GITHUB_URL}}}{\raisebox{-0.2\height}\faGithub\ \underline{{{GITHUB_DISPLAY}}}}
-    \end{center}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%  Education  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Education}
-  \resumeSubHeadingListStart
-{{EDUCATION}}
-  \resumeSubHeadingListEnd
+\setlength{\parindent}{0pt}
+\linespread{1.05}
+\vspace*{-0.7cm}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%  Experience  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Work Experience}
-  \resumeSubHeadingListStart
-{{EXPERIENCE}}
-  \resumeSubHeadingListEnd
+\newcommand{\sep}{\ \textbar\ }
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%  PROJECTS  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Personal Projects}
-\resumeSubHeadingListStart
-{{PROJECTS}}
-\resumeSubHeadingListEnd
+\begin{center}
+    {\LARGE \textbf{Abdullah Zia}} \\[4pt]
+    +92 336 0235555 \sep
+    \href{mailto:abdullah.maildrop@gmail.com}{abdullah.maildrop@gmail.com} \sep
+    \href{https://linkedin.com/in/abdullahziase}{linkedin.com/in/abdullahziase} \sep
+    \href{https://github.com/abdullahzia1}{github.com/abdullahzia1}
+\end{center}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%  Technical Skills  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Technical Skills}
-\vspace{-7pt}
+\section*{Professional Summary}
+\vspace{0.2cm}
+
+Full Stack AI Engineer with 2+ years of experience building scalable, production-grade applications. Strong focus on backend architecture, microservices, and event-driven systems, with hands-on experience in cloud infrastructure (AWS), containerization (Docker, Kubernetes), and CI/CD automation. Proven ability to design performant APIs, optimize system reliability, and ship end-to-end features across distributed systems.
+
+\vspace{0.1cm}
+
+\section*{Technical Skills}
+\vspace{0.2cm}
+
+TypeScript\sep JavaScript (ES6+)\sep Node.js\sep Express.js\sep NestJS\sep Fastify\sep StrapiJS\sep REST APIs\sep GraphQL (Apollo)\sep WebSockets\sep LLM Integration\sep OpenAI API\sep Prompt Engineering\sep RAG\sep AI Agents\sep Function Calling\sep Embeddings\sep Semantic Search\sep Vector DBs (Pinecone)\sep PostgreSQL\sep MySQL\sep MongoDB\sep Redis\sep Prisma\sep TypeORM\sep Mongoose\sep Sequelize\sep Kafka\sep RabbitMQ\sep BullMQ\sep Microservices\sep Event-Driven Architecture\sep Distributed Systems\sep System Design\sep Docker\sep Kubernetes\sep Terraform\sep AWS (EC2, S3, RDS, Lambda)\sep CI/CD (GitHub Actions)\sep NGINX\sep Serverless\sep Prometheus\sep Grafana\sep OpenTelemetry\sep React\sep Next.js\sep Angular\sep Redux\sep Jest\sep ESLint\sep Prettier\sep Linux\sep Bash/Shell
+
+\section*{Experience}
+\vspace{0.2cm}
+
+\textbf{WAMO Labs} \hfill Jan. 2025 -- Present
+
+\vspace{0.2cm}
+
 \begin{itemize}
-[leftmargin=0.15in, label={}]\small{\item{
-{{SKILLS}}
-}}
+    \item Built and scaled cloud-native backend platforms from the ground up, owning architecture, reliability, and delivery of high-throughput systems using event-driven design, async processing, and caching to support rapid product growth.
+    \item Abstracted complex infrastructure and data integrations into developer- and user-friendly platforms, delivering one-click deployments, automated environments, and seamless third-party integrations that drastically reduced setup time and operational burden.
+    \item Enabled fast, safe iteration in production, optimizing APIs, implementing real-time feedback pipelines, feature flags, and deep observability to ship quickly, experiment confidently, and maintain stability in fast-moving startup environments.
+    \item Led developer onboarding and mentorship programs, transforming graduates into productive engineers. Guided teams through complex technical challenges and strengthened collaboration through squad-driven initiatives.
 \end{itemize}
+
+\vspace{0.2cm}
+
+\textbf{Amigo Software} \hfill April 2024 -- Dec. 2024
+
+\vspace{0.2cm}
+
+\begin{itemize}
+    \item Developed and enhanced the UI for the Rainbow communication platform using Tailwind CSS and Bootstrap, improving responsiveness and user experience for real-time messaging, video, and collaboration features on OpenRainbow.
+    \item Implemented key application pages using Angular JS and MUI, delivering intuitive interfaces for comprehensive call recording and analytics in a scalable enterprise solution.
+    \item Collaborated across squads to design, test, and refine frontend components, integrating modern frameworks and design systems while ensuring performance and maintainability across both projects.
+\end{itemize}
+
+\section*{Projects}
+\vspace{0.2cm}
+
+\href{https://makro.pro}{\textbf{MakroPro}}
+
+\vspace{0.2cm}
+
+\begin{itemize}
+    \item Added strong validation and safety checks in Strapi, including PostgreSQL advisory locks for CRON jobs to prevent data conflicts in multi-instance ECS production setups.
+    \item Improved resilience of the product-service by adding circuit breakers for Redis and external HTTP calls, maintaining 0 HTTP request downtime when Redis was unavailable, and introducing TTL-based L2 caching for Flexi Pages.
+    \item Optimized large data queries using PostgreSQL CTEs and fixed critical edge cases that previously caused production downtime.
+\end{itemize}
+
+\vspace{0.2cm}
+
+\href{https://oneorb.io}{\textbf{Oneorb Talent}}
+
+\vspace{0.2cm}
+
+\begin{itemize}
+    \item Delivered recruiter-style profile and job discovery using natural-language queries parsed via Mastra/OpenAI into tags and parameters combined with AWS OpenSearch and third-party platforms.
+    \item Implemented CI/CD pipelines using GitHub Actions and ECS with auto-scaling for minimum downtime.
+    \item Ran scalable outbound email and operational workflows for candidates and jobs using providers like SendGrid and AWS SES.
+\end{itemize}
+
+\vspace{0.2cm}
+
+\href{https://spamchecker.oneorb.io}{\textbf{AI Spam Detection}}
+
+\vspace{0.2cm}
+
+\begin{itemize}
+    \item Implemented event-driven architecture for multi-cloud service deployment using RabbitMQ for event management.
+    \item Implemented CI/CD pipelines using GitHub Actions and ECS with auto-scaling for minimum downtime.
+    \item Ran scalable outbound email and operational workflows for candidates and jobs using providers like SendGrid and AWS SES.
+\end{itemize}
+
+\section*{Education}
+\vspace{0.1cm}
+
+\textbf{BS Computer Science} \hfill March 2020 -- March 2024
 
 \end{document}
