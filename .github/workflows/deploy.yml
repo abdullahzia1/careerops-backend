@@ -85,3 +85,41 @@ jobs:
           service:          ${{ env.ECS_SERVICE }}
           cluster:          ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
+
+      - name: Smoke test — verify LaTeX engine is present
+        env:
+          API_BASE: ${{ vars.API_BASE_URL || 'https://api.careerops.enovisoft.com' }}
+        run: |
+          set -euo pipefail
+          echo "Hitting $API_BASE/api/v1/system/doctor"
+
+          # Retry briefly to absorb post-deploy warm-up.
+          for attempt in 1 2 3 4 5; do
+            if curl -fsS --max-time 15 "$API_BASE/api/v1/system/doctor" -o doctor.json; then
+              break
+            fi
+            echo "Doctor endpoint not ready yet (attempt $attempt) — sleeping 10s"
+            sleep 10
+          done
+
+          if [ ! -s doctor.json ]; then
+            echo "::error::Doctor endpoint never responded with a body."
+            exit 1
+          fi
+
+          echo "Doctor response:"
+          jq '.' doctor.json
+
+          latex_pass=$(jq -r '
+            (.checks // [])
+            | map(select(.label | test("LaTeX engine"; "i")))
+            | (.[0].pass // false)
+          ' doctor.json)
+
+          if [ "$latex_pass" != "true" ]; then
+            echo "::error::LaTeX engine missing in deployed image — /api/v1/latex/compile will fail."
+            echo "::error::Check careerops-backend/Dockerfile (Tectonic install step)."
+            exit 1
+          fi
+
+          echo "✓ LaTeX engine detected in deployed task."

@@ -53,6 +53,7 @@ export class SystemService {
       this.checkNodeVersion(),
       this.checkDependencies(),
       await this.checkPlaywright(),
+      this.checkLatex(),
       this.checkFile('cv.md', 'cv.md found', ['Create cv.md in the project root with your CV in markdown', 'See examples/ for reference CVs']),
       this.checkFile('config/profile.yml', 'config/profile.yml found', ['Run: cp config/profile.example.yml config/profile.yml', 'Then edit it with your details']),
       this.checkFile('portals.yml', 'portals.yml found', ['Run: cp templates/portals.example.yml portals.yml', 'Then customize with your target companies']),
@@ -220,6 +221,28 @@ export class SystemService {
     } catch {
       return { pass: false, label: 'Playwright Chromium not installed', fix: 'Run: npx playwright install chromium (in backend/)' };
     }
+  }
+
+  private checkLatex(): DoctorCheck {
+    const fix = [
+      'Local: brew install tectonic (preferred) or install MacTeX/BasicTeX',
+      'Container: ensure Tectonic is baked into the image (see careerops-backend/Dockerfile)',
+    ];
+    for (const bin of ['tectonic', 'pdflatex']) {
+      try {
+        const version = execFileSync(bin, ['--version'], { encoding: 'utf-8', timeout: 5_000 })
+          .split('\n')[0]
+          .trim();
+        return { pass: true, label: `LaTeX engine available (${bin}: ${version})` };
+      } catch {
+        // try next compiler
+      }
+    }
+    return {
+      pass: false,
+      label: 'LaTeX engine not found — /api/v1/latex/compile will fail',
+      fix,
+    };
   }
 
   private checkFile(relPath: string, label: string, fix: string[]): DoctorCheck {

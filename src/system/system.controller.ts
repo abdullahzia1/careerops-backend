@@ -8,7 +8,7 @@ export class SystemController {
   constructor(private readonly systemService: SystemService) {}
 
   @Get('doctor')
-  @ApiOperation({ summary: 'System health check — Node version, Playwright, CV, profile, fonts, directories' })
+  @ApiOperation({ summary: 'System health check — Node version, Playwright, LaTeX engine, CV, profile, fonts, directories' })
   async doctor() {
     try {
       return await this.systemService.doctor();

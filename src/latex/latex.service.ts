@@ -91,6 +91,9 @@ export class LatexService {
     this.logger.log(`Compiling ${texPath}`);
 
     // Try tectonic first (preferred), then pdflatex
+    const failures: string[] = [];
+    let bothMissing = true;
+
     for (const compiler of ['tectonic', 'pdflatex']) {
       try {
         if (compiler === 'tectonic') {
@@ -108,18 +111,37 @@ export class LatexService {
         if (existsSync(pdfPath)) {
           return { success: true, message: `Compiled with ${compiler}`, pdfPath };
         }
+        bothMissing = false;
+        failures.push(`${compiler}: process exited but no PDF was produced`);
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err);
+        const isMissing = (err as NodeJS.ErrnoException)?.code === 'ENOENT' || /ENOENT/.test(msg);
+        if (!isMissing) bothMissing = false;
         this.logger.warn(`${compiler} failed: ${msg}`);
-        // Read .log for snippet if pdflatex
-        const logPath = pdfPath.replace(/\.pdf$/, '.log');
-        const logSnippet = existsSync(logPath) ? readFileSync(logPath, 'utf-8').split('\n').filter((l) => l.includes('!')).slice(0, 10).join('\n') : undefined;
-        if (compiler === 'pdflatex') {
-          return { success: false, message: `Compilation failed: ${msg}`, logSnippet };
-        }
+        failures.push(`${compiler}: ${msg}`);
       }
     }
 
-    return { success: false, message: 'Neither tectonic nor pdflatex found on PATH. Install one to compile.' };
+    // If both compilers were missing, surface the actionable message.
+    if (bothMissing) {
+      return {
+        success: false,
+        message:
+          'Neither tectonic nor pdflatex found on PATH. Install Tectonic (brew install tectonic) ' +
+          'or bake it into the deployment image (see careerops-backend/Dockerfile).',
+      };
+    }
+
+    // Otherwise report the (real) compilation error, with a log snippet if available.
+    const logPath = pdfPath.replace(/\.pdf$/, '.log');
+    const logSnippet = existsSync(logPath)
+      ? readFileSync(logPath, 'utf-8').split('\n').filter((l) => l.includes('!')).slice(0, 10).join('\n')
+      : undefined;
+
+    return {
+      success: false,
+      message: `Compilation failed: ${failures.join(' | ')}`,
+      logSnippet,
+    };
   }
 }

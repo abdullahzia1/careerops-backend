@@ -33,6 +33,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpangocairo-1.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
+# Tectonic LaTeX engine — single static binary, fetches packages on demand.
+# Used by /api/v1/latex/compile (LatexService prefers tectonic over pdflatex).
+ARG TECTONIC_VERSION=0.15.0
+RUN curl -fsSL "https://github.com/tectonic-typesetting/tectonic/releases/download/tectonic@${TECTONIC_VERSION}/tectonic-${TECTONIC_VERSION}-x86_64-unknown-linux-musl.tar.gz" \
+      | tar -xz -C /usr/local/bin tectonic \
+    && chmod +x /usr/local/bin/tectonic \
+    && tectonic --version
+
 WORKDIR /app
 
 # Copy built output and production node_modules from builder
