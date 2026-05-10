@@ -63,6 +63,7 @@ async function bootstrap() {
     .addTag('tracker')
     .addTag('system')
     .addTag('latex')
+    .addTag('jd')
     .build();
   SwaggerModule.setup(
     'api-docs',

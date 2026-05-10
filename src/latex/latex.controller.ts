@@ -11,12 +11,16 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { readFileSync } from 'fs';
 import { LatexService } from './latex.service';
-import { ValidateLatexDto, CompileLatexDto } from './dto/latex.dto';
+import { LatexInjectorService, InjectionResult } from './latex-injector.service';
+import { ValidateLatexDto, CompileLatexDto, InjectKeywordsDto } from './dto/latex.dto';
 
 @ApiTags('latex')
 @Controller('latex')
 export class LatexController {
-  constructor(private readonly latexService: LatexService) {}
+  constructor(
+    private readonly latexService: LatexService,
+    private readonly injector: LatexInjectorService,
+  ) {}
 
   @Get('template')
   @ApiOperation({ summary: 'Return the seed cv-template.tex source for the Resume Builder editor' })
@@ -28,6 +32,18 @@ export class LatexController {
   @ApiOperation({ summary: 'Validate LaTeX CV — check structure, placeholders, brace balance' })
   validate(@Body() dto: ValidateLatexDto) {
     return this.latexService.validate(dto.tex);
+  }
+
+  @Post('inject-keywords')
+  @ApiOperation({
+    summary:
+      'Inject ATS keywords into a LaTeX resume. Default strategy is deterministic Skills-section merge; ' +
+      "'ai' strategy lets Gemini propose patches across bullets and rolls back if the result fails validation.",
+  })
+  inject(@Body() dto: InjectKeywordsDto): Promise<InjectionResult> | InjectionResult {
+    return dto.strategy === 'ai'
+      ? this.injector.aiRewrite(dto.tex, dto.keywords)
+      : this.injector.injectIntoSkills(dto.tex, dto.keywords);
   }
 
   @Post('compile')

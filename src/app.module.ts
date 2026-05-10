@@ -7,6 +7,7 @@ import { EvaluationsModule } from './evaluations/evaluations.module';
 import { FollowupsModule } from './followups/followups.module';
 import { GeminiModule } from './gemini/gemini.module';
 import { HealthController } from './health/health.controller';
+import { JdModule } from './jd/jd.module';
 import { LatexModule } from './latex/latex.module';
 import { LivenessModule } from './liveness/liveness.module';
 import { MeModule } from './me/me.module';
@@ -39,6 +40,7 @@ const BACKEND_ENV = path.resolve(__dirname, '../.env');
     TrackerModule,
     SystemModule,
     LatexModule,
+    JdModule,
   ],
   controllers: [HealthController],
 })
