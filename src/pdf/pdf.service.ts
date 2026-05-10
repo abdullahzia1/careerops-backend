@@ -65,6 +65,28 @@ export class PdfService {
   }
 
   /**
+   * Build the same HTML the PDF endpoint renders, but with browser-loadable font
+   * URLs (HTTP via /assets/fonts/) instead of file:// paths only Playwright can read.
+   *
+   * @param markdown    Optional draft markdown — falls back to the active CV.
+   * @param assetOrigin Absolute origin (eg. "http://localhost:3001") that serves /assets/fonts.
+   *                    When empty, fonts will fail to load but layout/HTML is still preview-able.
+   */
+  previewHtml(opts: { markdown?: string; assetOrigin?: string } = {}): string {
+    if (!existsSync(TEMPLATE_PATH)) {
+      throw new Error('cv-template.html not found — expected at templates/cv-template.html');
+    }
+
+    const cv =
+      typeof opts.markdown === 'string' && opts.markdown.trim().length > 0
+        ? opts.markdown
+        : this.getActiveCv();
+    const profile = this.readProfile();
+    const html = this.buildHtmlFromTemplate(cv, profile);
+    return this.rewriteFontUrlsForBrowser(html, opts.assetOrigin ?? '');
+  }
+
+  /**
    * Save the generated PDF buffer to output/{filename}.
    * Returns the absolute path of the saved file.
    */
@@ -238,6 +260,17 @@ export class PdfService {
         /file:\/\/([^'")]+)\.(woff2?|ttf|otf)['"]?\)/g,
         `file://$1.$2')`,
       );
+  }
+
+  /**
+   * Replace the file:// font URLs (good for Playwright) with HTTP URLs that the
+   * browser can fetch from the Nest static-assets route. Used only for the live
+   * preview; the PDF render still uses file:// so it works without a network.
+   */
+  private rewriteFontUrlsForBrowser(html: string, assetOrigin: string): string {
+    const escaped = `file://${FONTS_DIR}/`.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const replacement = `${assetOrigin.replace(/\/$/, '')}/assets/fonts/`;
+    return html.replace(new RegExp(escaped, 'g'), replacement);
   }
 
   /**

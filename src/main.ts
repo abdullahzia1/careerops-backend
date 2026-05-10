@@ -3,10 +3,12 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { resolve } from 'path';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   const config = app.get(ConfigService);
   const port = config.get<number>('PORT') ?? 3001;
@@ -22,6 +24,17 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization', 'If-Match'],
     exposedHeaders: ['ETag'],
     credentials: true,
+  });
+
+  // Serve woff/woff2 fonts to the browser-based CV preview.
+  // The PDF render path keeps using file:// — see PdfService.patchFontPaths.
+  // CORS is wide-open here because @font-face requires it from cross-origin iframes.
+  app.useStaticAssets(resolve(__dirname, '../fonts'), {
+    prefix: '/assets/fonts',
+    setHeaders: (res) => {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+    },
   });
 
   app.useGlobalPipes(

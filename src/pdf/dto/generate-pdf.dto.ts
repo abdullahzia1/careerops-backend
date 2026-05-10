@@ -14,3 +14,13 @@ export class GeneratePdfDto {
   @IsIn(['a4', 'letter'])
   format?: 'a4' | 'letter';
 }
+
+export class PreviewCvDto {
+  @ApiPropertyOptional({
+    description:
+      'Draft CV markdown to preview. If omitted, falls back to the active CV from the store.',
+  })
+  @IsOptional()
+  @IsString()
+  markdown?: string;
+}

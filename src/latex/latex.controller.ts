@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpStatus,
   Post,
   Res,
@@ -16,6 +17,12 @@ import { ValidateLatexDto, CompileLatexDto } from './dto/latex.dto';
 @Controller('latex')
 export class LatexController {
   constructor(private readonly latexService: LatexService) {}
+
+  @Get('template')
+  @ApiOperation({ summary: 'Return the seed cv-template.tex source for the Resume Builder editor' })
+  template(): { tex: string } {
+    return { tex: this.latexService.readTemplate() };
+  }
 
   @Post('validate')
   @ApiOperation({ summary: 'Validate LaTeX CV — check structure, placeholders, brace balance' })

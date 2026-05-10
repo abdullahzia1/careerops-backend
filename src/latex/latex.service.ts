@@ -5,6 +5,7 @@ import { execFileSync } from 'child_process';
 
 const ROOT = resolve(__dirname, '../../');
 const OUTPUT_DIR = join(ROOT, 'output');
+const TEMPLATE_PATH = resolve(ROOT, 'templates/cv-template.tex');
 
 // Files Tectonic / pdflatex can leave behind beside <base>.pdf
 const ARTIFACT_EXTS = ['.tex', '.pdf', '.log', '.aux', '.out', '.toc', '.synctex.gz'];
@@ -34,6 +35,14 @@ export interface LatexCompileResult {
 @Injectable()
 export class LatexService {
   private readonly logger = new Logger(LatexService.name);
+
+  /** Seed source served to the Resume Builder editor on first load. */
+  readTemplate(): string {
+    if (!existsSync(TEMPLATE_PATH)) {
+      throw new Error('cv-template.tex not found at templates/cv-template.tex');
+    }
+    return readFileSync(TEMPLATE_PATH, 'utf-8');
+  }
 
   validate(texContent: string): LatexValidation {
     const errors: string[] = [];

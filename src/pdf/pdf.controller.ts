@@ -4,12 +4,13 @@ import {
   HttpException,
   HttpStatus,
   Post,
+  Req,
   Res,
 } from '@nestjs/common';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { PdfService } from './pdf.service';
-import { GeneratePdfDto } from './dto/generate-pdf.dto';
+import { GeneratePdfDto, PreviewCvDto } from './dto/generate-pdf.dto';
 
 @ApiTags('pdf')
 @Controller('pdf')
@@ -45,6 +46,37 @@ export class PdfController {
         'X-ATS-Replacements': String(result.atsReplacements),
       });
       res.status(201).send(result.buffer);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      throw new HttpException(msg, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Post('preview')
+  @ApiOperation({
+    summary: 'Render the CV as HTML for live in-browser preview (no PDF compile)',
+    description:
+      'Returns the same template the PDF endpoint renders, but with HTTP font URLs ' +
+      'so the browser can load them. Intended for an <iframe srcDoc> preview.',
+  })
+  @ApiBody({ type: PreviewCvDto, required: false })
+  @ApiResponse({ status: 200, description: 'CV preview as text/html' })
+  preview(
+    @Body() dto: PreviewCvDto = {},
+    @Req() req: Request,
+    @Res() res: Response,
+  ): void {
+    try {
+      const assetOrigin = `${req.protocol}://${req.get('host') ?? ''}`;
+      const html = this.pdfService.previewHtml({
+        markdown: dto.markdown,
+        assetOrigin,
+      });
+      res.set({
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'no-store',
+      });
+      res.status(200).send(html);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       throw new HttpException(msg, HttpStatus.INTERNAL_SERVER_ERROR);
