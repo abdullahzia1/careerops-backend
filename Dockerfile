@@ -53,6 +53,12 @@ COPY --from=builder /app/modes       ./modes
 COPY --from=builder /app/config      ./config
 COPY --from=builder /app/templates   ./templates
 COPY --from=builder /app/fonts       ./fonts
+COPY --from=builder /app/portals.yml ./portals.yml
+COPY --from=builder /app/cv.md       ./cv.md
+
+# Writable runtime directories (scan history, latex output, generated reports).
+# Auto-created on first use too, but creating them up-front avoids startup races.
+RUN mkdir -p ./data ./output ./reports
 
 # Install Playwright's Chromium browser into the image
 RUN npx playwright install chromium

@@ -86,7 +86,7 @@ jobs:
           cluster:          ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
 
-      - name: Smoke test — verify LaTeX engine is present
+      - name: Smoke test — verify runtime assets in deployed image
         env:
           API_BASE: ${{ vars.API_BASE_URL || 'https://api.careerops.enovisoft.com' }}
         run: |
@@ -110,16 +110,34 @@ jobs:
           echo "Doctor response:"
           jq '.' doctor.json
 
-          latex_pass=$(jq -r '
-            (.checks // [])
-            | map(select(.label | test("LaTeX engine"; "i")))
-            | (.[0].pass // false)
-          ' doctor.json)
+          # Each entry: <jq label-pattern> | <human description shown on failure>
+          required_checks=(
+            'LaTeX engine|LaTeX engine (tectonic/pdflatex) — /api/v1/latex/compile'
+            'portals.yml|portals.yml — /api/v1/scan/portals'
+            'cv.md|cv.md — /api/v1/evaluations'
+            'Playwright Chromium|Playwright Chromium — /api/v1/pdf and /api/v1/liveness'
+          )
 
-          if [ "$latex_pass" != "true" ]; then
-            echo "::error::LaTeX engine missing in deployed image — /api/v1/latex/compile will fail."
-            echo "::error::Check careerops-backend/Dockerfile (Tectonic install step)."
+          failed=0
+          for entry in "${required_checks[@]}"; do
+            pattern="${entry%%|*}"
+            description="${entry##*|}"
+            pass=$(jq -r --arg pat "$pattern" '
+              (.checks // [])
+              | map(select(.label | test($pat; "i")))
+              | (.[0].pass // false)
+            ' doctor.json)
+
+            if [ "$pass" != "true" ]; then
+              echo "::error::Doctor check failed: $description"
+              failed=1
+            else
+              echo "✓ $description"
+            fi
+          done
+
+          if [ "$failed" != "0" ]; then
+            echo "::error::One or more required runtime assets are missing in the deployed image."
+            echo "::error::Check careerops-backend/Dockerfile (COPY block + Tectonic install)."
             exit 1
           fi
-
-          echo "✓ LaTeX engine detected in deployed task."
