@@ -1,5 +1,14 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpStatus,
+  Post,
+  Res,
+  StreamableFile,
+} from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import type { Response } from 'express';
+import { readFileSync } from 'fs';
 import { LatexService } from './latex.service';
 import { ValidateLatexDto, CompileLatexDto } from './dto/latex.dto';
 
@@ -17,10 +26,33 @@ export class LatexController {
   @Post('compile')
   @ApiOperation({
     summary: 'Compile LaTeX to PDF via tectonic or pdflatex (must be installed on PATH)',
-    description: 'Returns compile result with PDF path. Requires tectonic (brew install tectonic) or pdflatex on server.',
+    description:
+      'On success: streams the PDF as application/pdf with Content-Disposition: attachment. ' +
+      'On failure: returns JSON { success: false, message, logSnippet? } with status 422. ' +
+      'Requires tectonic (preferred) or pdflatex on the server.',
   })
-  compile(@Body() dto: CompileLatexDto) {
-    const filename = dto.filename ?? `cv-${new Date().toISOString().slice(0, 10)}.pdf`;
-    return this.latexService.compile(dto.tex, filename);
+  compile(
+    @Body() dto: CompileLatexDto,
+    @Res({ passthrough: true }) res: Response,
+  ): StreamableFile | { success: false; message: string; logSnippet?: string } {
+    const filename = this.latexService.sanitizeFilename(dto.filename);
+    const result = this.latexService.compile(dto.tex, filename);
+
+    if (!result.success || !result.pdfPath) {
+      res.status(HttpStatus.UNPROCESSABLE_ENTITY);
+      return {
+        success: false,
+        message: result.message,
+        ...(result.logSnippet ? { logSnippet: result.logSnippet } : {}),
+      };
+    }
+
+    const pdfBuffer = readFileSync(result.pdfPath);
+    this.latexService.cleanupArtifacts(result.pdfPath);
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', pdfBuffer.length.toString());
+    return new StreamableFile(pdfBuffer);
   }
 }

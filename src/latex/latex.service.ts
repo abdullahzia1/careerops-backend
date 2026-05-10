@@ -1,10 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { existsSync, writeFileSync, readFileSync, mkdirSync } from 'fs';
-import { resolve, join } from 'path';
+import { existsSync, writeFileSync, readFileSync, mkdirSync, unlinkSync } from 'fs';
+import { resolve, join, basename } from 'path';
 import { execFileSync } from 'child_process';
 
 const ROOT = resolve(__dirname, '../../');
 const OUTPUT_DIR = join(ROOT, 'output');
+
+// Files Tectonic / pdflatex can leave behind beside <base>.pdf
+const ARTIFACT_EXTS = ['.tex', '.pdf', '.log', '.aux', '.out', '.toc', '.synctex.gz'];
 
 const REQUIRED_SECTIONS = [
   '\\\\begin\\{document\\}', '\\\\end\\{document\\}',
@@ -82,10 +85,36 @@ export class LatexService {
     };
   }
 
+  /**
+   * Strip directory components, restrict to safe characters, and force a `.pdf` suffix.
+   * Prevents path traversal via attacker-controlled filenames.
+   */
+  sanitizeFilename(raw: string | undefined | null): string {
+    const fallback = `cv-${new Date().toISOString().slice(0, 10)}.pdf`;
+    if (!raw) return fallback;
+    const cleaned = basename(raw).replace(/[^A-Za-z0-9._-]/g, '_').replace(/^\.+/, '');
+    if (!cleaned) return fallback;
+    return cleaned.toLowerCase().endsWith('.pdf') ? cleaned : `${cleaned}.pdf`;
+  }
+
+  /** Best-effort removal of every artifact tectonic / pdflatex may have produced. */
+  cleanupArtifacts(pdfPath: string): void {
+    const base = pdfPath.replace(/\.pdf$/, '');
+    for (const ext of ARTIFACT_EXTS) {
+      const p = `${base}${ext}`;
+      try {
+        if (existsSync(p)) unlinkSync(p);
+      } catch (err) {
+        this.logger.warn(`Failed to remove ${p}: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    }
+  }
+
   compile(texContent: string, outputFilename: string): LatexCompileResult {
     mkdirSync(OUTPUT_DIR, { recursive: true });
-    const texPath = join(OUTPUT_DIR, outputFilename.replace(/\.pdf$/, '.tex'));
-    const pdfPath = join(OUTPUT_DIR, outputFilename.replace(/\.tex$/, '.pdf'));
+    const safeName = this.sanitizeFilename(outputFilename);
+    const texPath = join(OUTPUT_DIR, safeName.replace(/\.pdf$/, '.tex'));
+    const pdfPath = join(OUTPUT_DIR, safeName);
 
     writeFileSync(texPath, texContent);
     this.logger.log(`Compiling ${texPath}`);
