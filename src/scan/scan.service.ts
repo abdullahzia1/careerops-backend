@@ -12,31 +12,41 @@ const APPLICATIONS_PATH = resolve(ROOT, 'data/applications.md');
 const CONCURRENCY = 10;
 const FETCH_TIMEOUT_MS = 10_000;
 
-export interface JobListing {
+export interface ScanJobRow {
   title: string;
   url: string;
   company: string;
   location: string;
   source: string;
+  /** ISO 8601 when the ATS exposes a date */
+  postedAt?: string;
 }
 
+/** Response shape consumed by `careerops-frontend` Scan page */
 export interface ScanResult {
+  scanned: number;
+  newJobs: number;
+  jobs: ScanJobRow[];
+  /** Rows skipped as duplicates (same URL or same company+title as seen before) */
+  skipped: number;
+  errors: string[];
+  dryRun: boolean;
   scannedAt: string;
-  companiesScanned: number;
-  companiesSkipped: number;
-  totalFound: number;
-  filtered: number;
-  duplicates: number;
-  newOffers: JobListing[];
-  errors: Array<{ company: string; error: string }>;
+  /** Extra counts for debugging / API clients (ignored by the web UI) */
+  stats?: {
+    totalFound: number;
+    filtered: number;
+    duplicates: number;
+    companiesSkipped: number;
+  };
 }
 
+/** Matches frontend `Portal` — ATS URL flags for display only */
 export interface PortalCompany {
   name: string;
-  enabled: boolean;
-  careers_url?: string;
-  api?: string;
-  apiDetected: string | null;
+  greenhouse?: string;
+  ashby?: string;
+  lever?: string;
 }
 
 interface ApiTarget {
@@ -52,13 +62,17 @@ export class ScanService {
     if (!existsSync(PORTALS_PATH)) return [];
     const config = yaml.load(readFileSync(PORTALS_PATH, 'utf-8')) as Record<string, unknown>;
     const companies = (config.tracked_companies as unknown[]) || [];
-    return (companies as Array<Record<string, unknown>>).map((c) => ({
-      name: String(c.name || ''),
-      enabled: c.enabled !== false,
-      careers_url: c.careers_url as string | undefined,
-      api: c.api as string | undefined,
-      apiDetected: this.detectApi(c)?.type ?? null,
-    }));
+    return (companies as Array<Record<string, unknown>>)
+      .filter((c) => c.enabled !== false)
+      .map((c) => {
+        const api = this.detectApi(c);
+        return {
+          name: String(c.name || ''),
+          greenhouse: api?.type === 'greenhouse' ? api.url : undefined,
+          ashby: api?.type === 'ashby' ? api.url : undefined,
+          lever: api?.type === 'lever' ? api.url : undefined,
+        };
+      });
   }
 
   async scan(options: { company?: string; dryRun?: boolean } = {}): Promise<ScanResult> {
@@ -83,19 +97,18 @@ export class ScanService {
     const seenUrls = this.loadSeenUrls();
     const seenCompanyRoles = this.loadSeenCompanyRoles();
 
-    const date = new Date().toISOString().slice(0, 10);
     let totalFound = 0;
     let totalFiltered = 0;
     let totalDupes = 0;
-    const newOffers: JobListing[] = [];
-    const errors: Array<{ company: string; error: string }> = [];
+    const collected: ScanJobRow[] = [];
+    const structuredErrors: Array<{ company: string; error: string }> = [];
 
     const tasks = targets.map(
       (company) => async () => {
         const api = company._api as ApiTarget;
         try {
-          const json = await this.fetchJson(api.url);
-          const jobs = this.parseJobs(api.type, json, String(company.name));
+          const raw = await this.fetchJson(api.url);
+          const jobs = this.parseJobs(api.type, raw, String(company.name));
           totalFound += jobs.length;
 
           for (const job of jobs) {
@@ -114,30 +127,37 @@ export class ScanService {
             }
             seenUrls.add(job.url);
             seenCompanyRoles.add(key);
-            newOffers.push({ ...job, source: `${api.type}-api` });
+            collected.push({ ...job, source: `${api.type}-api` });
           }
         } catch (err: unknown) {
           const msg = err instanceof Error ? err.message : String(err);
-          errors.push({ company: String(company.name), error: msg });
+          structuredErrors.push({ company: String(company.name), error: msg });
         }
       },
     );
 
     await this.parallelFetch(tasks, CONCURRENCY);
 
+    const dryRun = options.dryRun ?? false;
+
     this.logger.log(
-      `Scan complete: ${targets.length} companies, ${newOffers.length} new offers, ${errors.length} errors`,
+      `Scan complete: ${targets.length} companies, ${collected.length} new listings, ${structuredErrors.length} errors (dryRun=${dryRun})`,
     );
 
     return {
+      scanned: targets.length,
+      newJobs: collected.length,
+      jobs: collected,
+      skipped: totalDupes,
+      errors: structuredErrors.map((e) => `${e.company}: ${e.error}`),
+      dryRun,
       scannedAt: new Date().toISOString(),
-      companiesScanned: targets.length,
-      companiesSkipped: skippedCount,
-      totalFound,
-      filtered: totalFiltered,
-      duplicates: totalDupes,
-      newOffers,
-      errors,
+      stats: {
+        totalFound,
+        filtered: totalFiltered,
+        duplicates: totalDupes,
+        companiesSkipped: skippedCount,
+      },
     };
   }
 
@@ -177,39 +197,60 @@ export class ScanService {
     return null;
   }
 
-  private parseJobs(
-    type: string,
-    json: Record<string, unknown>,
-    company: string,
-  ): Array<{ title: string; url: string; company: string; location: string }> {
+  private parseJobs(type: string, json: unknown, company: string): Omit<ScanJobRow, 'source'>[] {
     if (type === 'greenhouse') {
-      const jobs = (json.jobs as Array<Record<string, unknown>>) || [];
+      const root = json as Record<string, unknown>;
+      const jobs = (root.jobs as Array<Record<string, unknown>>) || [];
       return jobs.map((j) => ({
         title: String(j.title || ''),
         url: String(j.absolute_url || ''),
         company,
         location: String((j.location as Record<string, unknown>)?.name || ''),
+        postedAt: this.pickPostedIso(j.updated_at, j.first_published),
       }));
     }
     if (type === 'ashby') {
-      const jobs = (json.jobs as Array<Record<string, unknown>>) || [];
+      const root = json as Record<string, unknown>;
+      const jobs = (root.jobs as Array<Record<string, unknown>>) || [];
       return jobs.map((j) => ({
         title: String(j.title || ''),
         url: String(j.jobUrl || ''),
         company,
         location: String(j.location || ''),
+        postedAt: this.pickPostedIso(
+          j.publishedDate,
+          j.published_at,
+          j.updatedAt,
+          j.createdAt,
+        ),
       }));
     }
     if (type === 'lever') {
       if (!Array.isArray(json)) return [];
-      return (json as Array<Record<string, unknown>>).map((j) => ({
+      return json.map((j) => ({
         title: String(j.text || ''),
         url: String(j.hostedUrl || ''),
         company,
         location: String((j.categories as Record<string, unknown>)?.location || ''),
+        postedAt: this.pickPostedIso(j.createdAt, j.updatedAt, j.timestamp),
       }));
     }
     return [];
+  }
+
+  /** Normalize ATS date fields to ISO strings for the UI */
+  private pickPostedIso(...vals: unknown[]): string | undefined {
+    for (const v of vals) {
+      if (typeof v === 'number' && Number.isFinite(v)) {
+        const d = new Date(v);
+        if (!Number.isNaN(d.getTime())) return d.toISOString();
+      }
+      if (typeof v === 'string') {
+        const t = v.trim();
+        if (t) return t;
+      }
+    }
+    return undefined;
   }
 
   private buildTitleFilter(
@@ -266,13 +307,14 @@ export class ScanService {
     return seen;
   }
 
-  private async fetchJson(url: string): Promise<Record<string, unknown>> {
+  /** Lever boards return a JSON array at the root; others return objects */
+  private async fetchJson(url: string): Promise<unknown> {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
     try {
       const res = await fetch(url, { signal: controller.signal });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return (await res.json()) as Record<string, unknown>;
+      return await res.json();
     } finally {
       clearTimeout(timer);
     }
